@@ -2,7 +2,7 @@
  File:    main.cpp
  Project: Meditation Machine
  Started: 10.10.2024
- Edited:  17.10.2024
+ Edited:  18.10.2024
 
  Copyright Tauno Erik & TSENTER 2024
 */
@@ -16,8 +16,6 @@
 // Radar TX -> Pico GPIO1
 Radar_MR24HPC1 radar = Radar_MR24HPC1(&Serial1);
 
-int heartbeat = 0;
-
 // Radar settings
 const int RADAR_INTERVAL =  500;  // ms 300
 const int MOTION_ENERGY_THRESHOLD = 15;
@@ -27,7 +25,7 @@ const int STATIC_DISTANSE_THRESHOLD = 200;  // cm
 
 // Stepper Motor
 const int STEPS_PER_REV = 4096;
-const int STEP_DELAY = 900;      // in micros
+const int STEP_DELAY = 900;  // in micros
 
 #define STOP               0
 #define CLOCKWISE          1
@@ -72,16 +70,14 @@ void core1_task() {
 
   while (true) {
     center_disk.run();
-    center_disk.move(CLOCKWISE);
+    center_disk.move(COUNTER_CLOCKWISE);
   }
 }
 
 
 void setup() {
-  // Serial print
-  Serial.begin(115200);
-  // Radar
-  Serial1.begin(115200);
+  Serial.begin(115200);   // Serial print
+  Serial1.begin(115200);  // Radar
 
   while (!Serial1) {
       Serial.println("Radar disconnected");
@@ -98,11 +94,16 @@ void setup() {
 
 
 void loop() {
-  //static int motor_3_direction = 0;
   uint64_t current_millis = millis();
+  static int motion_energy = 0;
+  static int static_energy = 0;
+  static int static_distance = 0;
+  static int motion_distance = 0;
 
   //radar.run(VERBAL);
   radar.run(NONVERBAL);
+  left_gears.run();
+  right_gears.run();
 
 
   if ((current_millis - prev_millis) >= RADAR_INTERVAL) {
@@ -113,12 +114,11 @@ void loop() {
   if (ask_radar) {
     ask_radar = false;
 
-    int motion_energy = radar.get_motion_energy();
-    int static_energy = radar.get_static_energy();
-    int static_distance = radar.get_static_distance();
-    int motion_distance = radar.get_motion_distance();
+    motion_energy = radar.get_motion_energy();
+    static_energy = radar.get_static_energy();
+    static_distance = radar.get_static_distance();
+    motion_distance = radar.get_motion_distance();
 
-    // Serial.print(counter);
     Serial.print("Liikuv ");
     Serial.print(motion_energy);
     Serial.print(" \td: ");
@@ -129,26 +129,19 @@ void loop() {
     Serial.print(static_distance);
     Serial.print("cm");
     Serial.println();
-
-    //
-    if (static_energy > STATIC_ENERGY_THRESHOLD) {
-      if (motion_energy < MOTION_ENERGY_THRESHOLD) {
-        if (static_distance <= STATIC_DISTANSE_THRESHOLD) {
-          // Move
-          left_gears.run();
-          left_gears.move(CLOCKWISE);
-
-          right_gears.run();
-          right_gears.move(COUNTER_CLOCKWISE);
-        }
-      }
-    } else {
-      left_gears.run();
-          left_gears.move(STOP);
-          
-          right_gears.run();
-          right_gears.move(STOP);
-      
-    }
   }
+
+  //
+  if (static_energy > STATIC_ENERGY_THRESHOLD) {
+    if (motion_energy < MOTION_ENERGY_THRESHOLD) {
+      if (static_distance <= STATIC_DISTANSE_THRESHOLD) {
+        left_gears.move(CLOCKWISE);
+        right_gears.move(COUNTER_CLOCKWISE);
+      }
+    }
+  } else {
+    left_gears.move(STOP);
+    right_gears.move(STOP);
+  }
+
 }
