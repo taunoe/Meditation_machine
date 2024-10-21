@@ -2,12 +2,10 @@
  File:    main.cpp
  Project: Meditation Machine
  Started: 10.10.2024
- Edited:  18.10.2024
+ Edited:  21.10.2024
 
  Copyright Tauno Erik & TSENTER 2024
 */
-
-#include <pico/multicore.h>
 #include <Arduino.h>
 #include "Unistep2.h"        // https://github.com/reven/Unistep2
 #include "Radar_MR24HPC1.h"  // https://github.com/taunoe/mr24hpc1-radar
@@ -64,17 +62,6 @@ uint64_t prev_millis = 0;
 bool ask_radar = false;
 
 
-void core1_task() {
-  //static int motor_1_direction = 0;  // +1, -1 or 0
-  //static int center_disk_direction = CLOCKWISE;
-
-  while (true) {
-    center_disk.run();
-    center_disk.move(COUNTER_CLOCKWISE);
-  }
-}
-
-
 void setup() {
   Serial.begin(115200);   // Serial print
   Serial1.begin(115200);  // Radar
@@ -87,9 +74,6 @@ void setup() {
   //radar.set_mode(SIMPLE);
   radar.set_mode(ADVANCED);
   // radar.set_static_limit(RANGE_300_CM);
-
-  // Launch core1_task on Core 1
-  multicore_launch_core1(core1_task);
 }
 
 
@@ -99,6 +83,9 @@ void loop() {
   static int static_energy = 0;
   static int static_distance = 0;
   static int motion_distance = 0;
+
+  center_disk.run();
+  center_disk.move(COUNTER_CLOCKWISE);
 
   //radar.run(VERBAL);
   radar.run(NONVERBAL);
