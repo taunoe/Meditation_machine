@@ -2,7 +2,7 @@
  File:    main.cpp
  Project: Meditation Machine
  Started: 10.10.2024
- Edited:  21.10.2024
+ Edited:  22.10.2024
 
  Copyright Tauno Erik & TSENTER 2024
 */
@@ -15,10 +15,10 @@
 Radar_MR24HPC1 radar = Radar_MR24HPC1(&Serial1);
 
 // Radar settings
-const int RADAR_INTERVAL =  500;  // ms 300
-const int MOTION_ENERGY_THRESHOLD = 15;
-const int STATIC_ENERGY_THRESHOLD = 121;
-const int STATIC_DISTANSE_THRESHOLD = 200;  // cm
+const int RADAR_INTERVAL =  300;  // ms 300
+const int MOTION_ENERGY_THRESHOLD = 150;  // 15
+const int STATIC_ENERGY_THRESHOLD = 120;  // 120
+const int STATIC_DISTANSE_THRESHOLD = 200;  // 200 cm
 
 
 // Stepper Motor
@@ -49,10 +49,10 @@ Unistep2 center_disk(M2_IN1, M2_IN2, M2_IN3, M2_IN4, STEPS_PER_REV, STEP_DELAY);
 
 // Stepper Motor 3 Pins
 // Right Gears
-const int M3_IN1 = 10;  // Pico GPIO10
-const int M3_IN2 = 11;
-const int M3_IN3 = 12;
-const int M3_IN4 = 13;
+const int M3_IN1 = 12;  // Pico GPIO10
+const int M3_IN2 = 13;
+const int M3_IN3 = 14;
+const int M3_IN4 = 15;
 
 Unistep2 right_gears(M3_IN1, M3_IN2, M3_IN3, M3_IN4, STEPS_PER_REV, STEP_DELAY);
 
@@ -61,7 +61,14 @@ Unistep2 right_gears(M3_IN1, M3_IN2, M3_IN3, M3_IN4, STEPS_PER_REV, STEP_DELAY);
 uint64_t prev_millis = 0;
 bool ask_radar = false;
 
+/*******************************************/
 
+
+
+
+/*****************************************
+ * Core 0 setup
+ *****************************************/
 void setup() {
   Serial.begin(115200);   // Serial print
   Serial1.begin(115200);  // Radar
@@ -74,9 +81,22 @@ void setup() {
   //radar.set_mode(SIMPLE);
   radar.set_mode(ADVANCED);
   // radar.set_static_limit(RANGE_300_CM);
+
 }
 
 
+/*****************************************
+ * Core 1 setup
+ *****************************************/
+/*
+void setup1() {
+}
+*/
+
+
+/*****************************************
+ * Core 0 loop
+ *****************************************/
 void loop() {
   uint64_t current_millis = millis();
   static int motion_energy = 0;
@@ -84,14 +104,16 @@ void loop() {
   static int static_distance = 0;
   static int motion_distance = 0;
 
-  center_disk.run();
-  center_disk.move(COUNTER_CLOCKWISE);
-
   //radar.run(VERBAL);
   radar.run(NONVERBAL);
+
+  center_disk.run();
   left_gears.run();
   right_gears.run();
 
+  center_disk.move(COUNTER_CLOCKWISE);
+  left_gears.move(COUNTER_CLOCKWISE);
+  right_gears.move(COUNTER_CLOCKWISE);
 
   if ((current_millis - prev_millis) >= RADAR_INTERVAL) {
     ask_radar = true;
@@ -121,16 +143,25 @@ void loop() {
   //
   if (static_energy > STATIC_ENERGY_THRESHOLD) {
     if (motion_energy < MOTION_ENERGY_THRESHOLD) {
-      Serial.println("__ 2 Liigu");
+      // Serial.println("__ 2 Liigu");
       if (static_distance <= STATIC_DISTANSE_THRESHOLD) {
-        Serial.println("__ 3 Liigu");
-        left_gears.move(CLOCKWISE);
-        right_gears.move(COUNTER_CLOCKWISE);
+        // Serial.println("__ 3 Liigu");
+        //left_gears.move(CLOCKWISE);
+        //right_gears.move(COUNTER_CLOCKWISE);
       }
     }
   } else {
-    left_gears.move(STOP);
-    right_gears.move(STOP);
+    //left_gears.move(STOP);
+    //right_gears.move(STOP);
   }
 
 }
+
+/*****************************************
+ * Core 1 loop
+ *****************************************/
+/*
+void loop1() {
+}
+*/
+
