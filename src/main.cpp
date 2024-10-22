@@ -121,7 +121,9 @@ void loop() {
   //
   if (static_energy > STATIC_ENERGY_THRESHOLD) {
     if (motion_energy < MOTION_ENERGY_THRESHOLD) {
+      Serial.println("__ 2 Liigu");
       if (static_distance <= STATIC_DISTANSE_THRESHOLD) {
+        Serial.println("__ 3 Liigu");
         left_gears.move(CLOCKWISE);
         right_gears.move(COUNTER_CLOCKWISE);
       }
