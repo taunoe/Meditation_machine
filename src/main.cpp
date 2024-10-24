@@ -2,7 +2,7 @@
  File:    main.cpp
  Project: Meditation Machine
  Started: 10.10.2024
- Edited:  22.10.2024
+ Edited:  24.10.2024
 
  Copyright Tauno Erik & TSENTER 2024
 */
@@ -17,7 +17,7 @@ Radar_MR24HPC1 radar = Radar_MR24HPC1(&Serial1);
 // Radar settings
 const int RADAR_INTERVAL =  300;  // ms 300
 const int MOTION_ENERGY_THRESHOLD = 150;  // 15
-const int STATIC_ENERGY_THRESHOLD = 120;  // 120
+const int STATIC_ENERGY_THRESHOLD = 150;  // 120
 const int STATIC_DISTANSE_THRESHOLD = 200;  // 200 cm
 
 
@@ -104,6 +104,9 @@ void loop() {
   static int static_distance = 0;
   static int motion_distance = 0;
 
+  static int left_disk_direction = STOP;
+  static int right_disk_direction = STOP;
+
   //radar.run(VERBAL);
   radar.run(NONVERBAL);
 
@@ -112,14 +115,15 @@ void loop() {
   right_gears.run();
 
   center_disk.move(COUNTER_CLOCKWISE);
-  left_gears.move(COUNTER_CLOCKWISE);
-  right_gears.move(COUNTER_CLOCKWISE);
+  left_gears.move(left_disk_direction);
+  right_gears.move(right_disk_direction);
 
   if ((current_millis - prev_millis) >= RADAR_INTERVAL) {
     ask_radar = true;
     prev_millis = current_millis;
   }
 
+  // Time to ask new data from radar
   if (ask_radar) {
     ask_radar = false;
 
@@ -140,7 +144,8 @@ void loop() {
     Serial.println();
   }
 
-  //
+  // Motion_energy annab väga erinevaid tulemusi, kui suur kettas pöörleb
+  /*
   if (static_energy > STATIC_ENERGY_THRESHOLD) {
     if (motion_energy < MOTION_ENERGY_THRESHOLD) {
       // Serial.println("__ 2 Liigu");
@@ -153,6 +158,20 @@ void loop() {
   } else {
     //left_gears.move(STOP);
     //right_gears.move(STOP);
+  }
+  */
+
+  // Lihtsustatud
+  if (static_energy > STATIC_ENERGY_THRESHOLD) {
+    if (motion_energy < MOTION_ENERGY_THRESHOLD) {
+      if (static_distance <= STATIC_DISTANSE_THRESHOLD) {
+        left_disk_direction = CLOCKWISE;
+        right_disk_direction = COUNTER_CLOCKWISE;
+      }
+    }
+  } else {
+    left_disk_direction = STOP;
+    right_disk_direction = STOP;
   }
 
 }
