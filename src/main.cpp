@@ -2,7 +2,7 @@
  File:    main.cpp
  Project: Meditation Machine
  Started: 10.10.2024
- Edited:  24.10.2024
+ Edited:  14.11.2024
 
  Copyright Tauno Erik & TSENTER 2024
 */
@@ -16,7 +16,7 @@ Radar_MR24HPC1 radar = Radar_MR24HPC1(&Serial1);
 
 // Radar settings
 const int RADAR_INTERVAL =  300;  // ms 300
-const int MOTION_ENERGY_THRESHOLD = 150;  // 15
+const int MOTION_ENERGY_THRESHOLD = 40;  // 15
 const int STATIC_ENERGY_THRESHOLD = 150;  // 120
 const int STATIC_DISTANSE_THRESHOLD = 200;  // 200 cm
 
